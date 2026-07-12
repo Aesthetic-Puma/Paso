@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Paso",
+    "slug": "paso",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#F3EFE7"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.paso.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F3EFE7"
+      },
+      "package": "com.paso.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
