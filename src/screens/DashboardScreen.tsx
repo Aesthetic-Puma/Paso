@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Modal,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -74,6 +75,19 @@ export function DashboardScreen() {
 
   const handleAdvance = (taskId: string) => {
     const currentStatus = plan.taskStatuses[taskId] ?? 'todo';
+
+    if (currentStatus === 'done') {
+      Alert.alert(
+        'Marquer comme non faite ?',
+        'Cette tâche sera remise en attente.',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Oui', style: 'destructive', onPress: () => advanceTask(countryId, taskId) },
+        ]
+      );
+      return;
+    }
+
     advanceTask(countryId, taskId);
     if (currentStatus === 'in_progress' && !feedbackShown.has(taskId)) {
       setFeedbackShown((prev) => new Set(prev).add(taskId));

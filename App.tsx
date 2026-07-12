@@ -14,6 +14,7 @@ import {
 import { View, ActivityIndicator } from 'react-native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { Colors } from './src/theme';
+import { useStore } from './src/store/useStore';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -25,7 +26,9 @@ export default function App() {
     Newsreader_500Medium,
   });
 
-  if (!fontsLoaded) {
+  const hydrated = useStore((s) => s._hasHydrated);
+
+  if (!fontsLoaded || !hydrated) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bg }}>
         <ActivityIndicator color={Colors.dark} />

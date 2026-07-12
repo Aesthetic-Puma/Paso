@@ -151,10 +151,30 @@ const savingsChipLabel = (v: string): string => {
   return 'Épargne > 6 000 €';
 };
 
+// buildQuestions always returns 8 questions (one branch for Q6)
+const TOTAL_QUESTIONS = 8;
+
 export function OnboardingScreen({ navigation }: Props) {
   const setProfile = useStore((s) => s.setProfile);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  const profile = useStore((s) => s.profile);
+  const isEditingProfile = useStore((s) => s.isEditingProfile);
+
+  const [answers, setAnswers] = useState<Answers>(() => {
+    if (!isEditingProfile) return {};
+    return {
+      status: profile.status || undefined,
+      nationality: profile.nationality || undefined,
+      objective: profile.objective || undefined,
+      duration: profile.duration || undefined,
+      incomeAssured: profile.incomeAssured || undefined,
+      monthlyIncome: profile.monthlyIncome || undefined,
+      savings: profile.savings || undefined,
+      domain: profile.domain || undefined,
+      englishLevel: profile.englishLevel || undefined,
+    };
+  });
+
+  const [step, setStep] = useState(() => (isEditingProfile ? TOTAL_QUESTIONS : 0));
 
   const questions = useMemo(() => buildQuestions(answers), [answers.incomeAssured]);
   const total = questions.length;

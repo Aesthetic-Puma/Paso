@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,7 +22,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
-  const { profile, favorites, toggleFavorite, resetOnboarding } = useStore();
+  const { profile, favorites, toggleFavorite, editProfile, resetAll } = useStore();
   const entries = useFeedbackStore((s) => s.entries);
 
   const favCountries = favorites
@@ -83,11 +84,28 @@ export function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.editBtn}
-            onPress={resetOnboarding}
+            onPress={editProfile}
             activeOpacity={0.8}
           >
             <Text style={styles.editBtnText}>Modifier mes réponses</Text>
             <Text style={styles.editBtnArrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.dangerBtn}
+            onPress={() =>
+              Alert.alert(
+                'Tout réinitialiser ?',
+                'Tes plans et ta progression seront définitivement supprimés.',
+                [
+                  { text: 'Annuler', style: 'cancel' },
+                  { text: 'Réinitialiser', style: 'destructive', onPress: resetAll },
+                ]
+              )
+            }
+            activeOpacity={0.8}
+          >
+            <Text style={styles.dangerBtnText}>Réinitialiser l'application</Text>
           </TouchableOpacity>
 
           {favCountries.length > 0 && (
@@ -192,6 +210,16 @@ const styles = StyleSheet.create({
   },
   editBtnText: { fontFamily: Fonts.sansSemiBold, fontSize: 14.5, color: Colors.dark },
   editBtnArrow: { fontSize: 20, color: '#c3bcab' },
+  dangerBtn: {
+    marginTop: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(180,50,30,0.2)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  dangerBtnText: { fontFamily: Fonts.sansMedium, fontSize: 14, color: Colors.red },
   favsCard: {
     backgroundColor: Colors.card,
     borderRadius: 18,

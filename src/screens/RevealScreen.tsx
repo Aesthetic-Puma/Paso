@@ -85,6 +85,12 @@ const difficile = COUNTRIES.filter((c) => c.score < 45).length;
 // ─── RevealScreen ─────────────────────────────────────────────────────────────
 export function RevealScreen() {
   const completeOnboarding = useStore((s) => s.completeOnboarding);
+  const setPendingInitialTab = useStore((s) => s.setPendingInitialTab);
+
+  const handleCta = () => {
+    setPendingInitialTab('Carte');
+    completeOnboarding();
+  };
 
   const [revealedCount, setRevealedCount] = useState(0);
   const [phase, setPhase] = useState<'analysing' | 'revealing' | 'done' | 'summary'>('analysing');
@@ -120,11 +126,8 @@ export function RevealScreen() {
 
     const t2 = setTimeout(() => setPhase('summary'), allRevealedMs + 700);
 
-    // Auto-navigate after full display
-    const t3 = setTimeout(() => completeOnboarding(), allRevealedMs + 1700);
-
     return () => {
-      [t0, t1, t2, t3, ...pinTimers].forEach(clearTimeout);
+      [t0, t1, t2, ...pinTimers].forEach(clearTimeout);
     };
   }, []);
 
@@ -186,7 +189,7 @@ export function RevealScreen() {
             </View>
             <TouchableOpacity
               style={styles.ctaBtn}
-              onPress={completeOnboarding}
+              onPress={handleCta}
               activeOpacity={0.85}
             >
               <Text style={styles.ctaBtnText}>Voir mes destinations →</Text>

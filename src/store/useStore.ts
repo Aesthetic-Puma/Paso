@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { Country, Task } from '../data/countries';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Task } from '../data/countries';
 
 export interface UserProfile {
   name: string;
@@ -24,19 +26,28 @@ export interface ActivePlan {
 }
 
 interface AppState {
+  // Persisted
   onboardingDone: boolean;
+  isEditingProfile: boolean;
   profile: UserProfile;
   favorites: string[];
   plans: ActivePlan[];
   activePlanCountryId: string | null;
+  // In-memory only (never persisted)
+  _hasHydrated: boolean;
+  pendingInitialTab: string | null;
 
   setProfile: (profile: UserProfile) => void;
   completeOnboarding: () => void;
+  editProfile: () => void;
+  resetAll: () => void;
+  setPendingInitialTab: (tab: string | null) => void;
+  clearPendingInitialTab: () => void;
   toggleFavorite: (countryId: string) => void;
   createPlan: (plan: Omit<ActivePlan, 'createdAt'>) => void;
   setActivePlan: (countryId: string | null) => void;
   advanceTask: (countryId: string, taskId: string) => void;
-  resetOnboarding: () => void;
+  _setHasHydrated: (val: boolean) => void;
 }
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -58,57 +69,92 @@ const nextStatus = (s: Task['status']): Task['status'] => {
   return 'todo';
 };
 
-export const useStore = create<AppState>((set) => ({
-  onboardingDone: false,
-  profile: DEFAULT_PROFILE,
-  favorites: [],
-  plans: [],
-  activePlanCountryId: null,
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      onboardingDone: false,
+      isEditingProfile: false,
+      profile: DEFAULT_PROFILE,
+      favorites: [],
+      plans: [],
+      activePlanCountryId: null,
+      _hasHydrated: false,
+      pendingInitialTab: null,
 
-  setProfile: (profile) => set({ profile }),
+      _setHasHydrated: (val) => set({ _hasHydrated: val }),
+      setPendingInitialTab: (tab) => set({ pendingInitialTab: tab }),
+      clearPendingInitialTab: () => set({ pendingInitialTab: null }),
 
-  completeOnboarding: () => set({ onboardingDone: true }),
+      setProfile: (profile) => set({ profile }),
 
-  toggleFavorite: (countryId) =>
-    set((s) => ({
-      favorites: s.favorites.includes(countryId)
-        ? s.favorites.filter((id) => id !== countryId)
-        : [...s.favorites, countryId],
-    })),
+      completeOnboarding: () => set({ onboardingDone: true, isEditingProfile: false }),
 
-  createPlan: (plan) =>
-    set((s) => {
-      const existing = s.plans.find((p) => p.countryId === plan.countryId);
-      if (existing) {
-        return {
-          plans: s.plans.map((p) =>
-            p.countryId === plan.countryId ? { ...plan, createdAt: p.createdAt } : p,
-          ),
-          activePlanCountryId: plan.countryId,
-        };
-      }
-      return {
-        plans: [...s.plans, { ...plan, createdAt: new Date().toISOString() }],
-        activePlanCountryId: plan.countryId,
-      };
+      editProfile: () => set({ onboardingDone: false, isEditingProfile: true }),
+
+      resetAll: () =>
+        set({
+          onboardingDone: false,
+          isEditingProfile: false,
+          profile: DEFAULT_PROFILE,
+          favorites: [],
+          plans: [],
+          activePlanCountryId: null,
+        }),
+
+      toggleFavorite: (countryId) =>
+        set((s) => ({
+          favorites: s.favorites.includes(countryId)
+            ? s.favorites.filter((id) => id !== countryId)
+            : [...s.favorites, countryId],
+        })),
+
+      createPlan: (plan) =>
+        set((s) => {
+          const existing = s.plans.find((p) => p.countryId === plan.countryId);
+          if (existing) {
+            return {
+              plans: s.plans.map((p) =>
+                p.countryId === plan.countryId ? { ...plan, createdAt: p.createdAt } : p,
+              ),
+              activePlanCountryId: plan.countryId,
+            };
+          }
+          return {
+            plans: [...s.plans, { ...plan, createdAt: new Date().toISOString() }],
+            activePlanCountryId: plan.countryId,
+          };
+        }),
+
+      setActivePlan: (countryId) => set({ activePlanCountryId: countryId }),
+
+      advanceTask: (countryId, taskId) =>
+        set((s) => {
+          const plan = s.plans.find((p) => p.countryId === countryId);
+          if (!plan) return {};
+          const current = plan.taskStatuses[taskId] ?? 'todo';
+          return {
+            plans: s.plans.map((p) =>
+              p.countryId === countryId
+                ? { ...p, taskStatuses: { ...p.taskStatuses, [taskId]: nextStatus(current) } }
+                : p,
+            ),
+          };
+        }),
     }),
-
-  setActivePlan: (countryId) => set({ activePlanCountryId: countryId }),
-
-  advanceTask: (countryId, taskId) =>
-    set((s) => {
-      const plan = s.plans.find((p) => p.countryId === countryId);
-      if (!plan) return {};
-      const current = plan.taskStatuses[taskId] ?? 'todo';
-      return {
-        plans: s.plans.map((p) =>
-          p.countryId === countryId
-            ? { ...p, taskStatuses: { ...p.taskStatuses, [taskId]: nextStatus(current) } }
-            : p,
-        ),
-      };
-    }),
-
-  resetOnboarding: () =>
-    set({ onboardingDone: false, profile: DEFAULT_PROFILE, favorites: [], plans: [], activePlanCountryId: null }),
-}));
+    {
+      name: 'paso-store',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        onboardingDone: state.onboardingDone,
+        isEditingProfile: state.isEditingProfile,
+        profile: state.profile,
+        favorites: state.favorites,
+        plans: state.plans,
+        activePlanCountryId: state.activePlanCountryId,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?._setHasHydrated(true);
+      },
+    }
+  )
+);

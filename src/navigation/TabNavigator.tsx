@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text } from 'react-native';
+import { useStore } from '../store/useStore';
 import { TabParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { MapScreen } from '../screens/MapScreen';
@@ -42,9 +43,30 @@ function ProfileIcon({ color }: { color: string }) {
   );
 }
 
+// Maps French label → internal route name
+const TAB_NAME_MAP: Record<string, keyof TabParamList> = {
+  Accueil: 'Home',
+  Carte: 'Map',
+  Plan: 'Plans',
+  Profil: 'Profile',
+};
+
 export function TabNavigator() {
+  const pendingInitialTab = useStore((s) => s.pendingInitialTab);
+  const clearPendingInitialTab = useStore((s) => s.clearPendingInitialTab);
+
+  const initialRouteName: keyof TabParamList =
+    pendingInitialTab !== null
+      ? (TAB_NAME_MAP[pendingInitialTab] ?? 'Home')
+      : 'Home';
+
+  useEffect(() => {
+    if (pendingInitialTab !== null) clearPendingInitialTab();
+  }, []);
+
   return (
     <Tab.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
