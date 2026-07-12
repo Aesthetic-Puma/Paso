@@ -11,7 +11,8 @@ import {
   Newsreader_400Regular,
   Newsreader_500Medium,
 } from '@expo-google-fonts/newsreader';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { Colors } from './src/theme';
 import { useStore } from './src/store/useStore';
@@ -30,16 +31,31 @@ export default function App() {
 
   if (!fontsLoaded || !hydrated) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bg }}>
-        <ActivityIndicator color={Colors.dark} />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bg }}>
+          <ActivityIndicator color={Colors.dark} />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <>
-      <StatusBar style="dark" backgroundColor={Colors.bg} />
-      <RootNavigator />
-    </>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={Platform.OS === 'web' ? styles.webContainer : styles.nativeContainer}>
+        <StatusBar style="dark" backgroundColor={Colors.bg} />
+        <RootNavigator />
+      </View>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  nativeContainer: { flex: 1 },
+  webContainer: {
+    flex: 1,
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: Colors.bg,
+  },
+});
