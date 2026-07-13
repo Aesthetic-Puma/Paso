@@ -67,6 +67,29 @@ function computeLabelSet(candidates: Country[]): ReadonlySet<string> {
 const LABELS_LOW_ZOOM = computeLabelSet(COUNTRIES_BY_SCORE.slice(0, 3));
 const LABELS_HIGH_ZOOM = computeLabelSet(COUNTRIES_BY_SCORE);
 
+// ─── List view filter data ────────────────────────────────────────────────────
+const REGIONS = [...new Set(COUNTRIES.map((c) => c.region))].sort();
+
+const BUDGET_TIERS = [
+  { label: '< 1 500 €/mois', max: 1500 },
+  { label: '< 2 000 €/mois', max: 2000 },
+  { label: '< 2 500 €/mois', max: 2500 },
+];
+
+const DUREE_TIERS = [
+  { label: 'Visa 6+ mois', min: 6 },
+  { label: 'Visa 12+ mois', min: 12 },
+  { label: 'Visa 2 ans+', min: 24 },
+];
+
+function visaDureeToMonths(duree: string): number {
+  const years = duree.match(/(\d+)\s*an/i);
+  if (years) return parseInt(years[1], 10) * 12;
+  const months = duree.match(/(\d+)\s*mois/i);
+  if (months) return parseInt(months[1], 10);
+  return 0;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const incomeToString = (v: string) => {
   if (v === '< 1 500 €') return '1 200 €/mois';
@@ -83,8 +106,11 @@ export function MapScreen() {
   const { profile } = useStore();
   const [view, setView] = useState<'map' | 'list'>('map');
   const [selected, setSelected] = useState<Country>(COUNTRIES[0]);
-  // Track whether user has zoomed in enough to show all labels
   const [highZoom, setHighZoom] = useState(false);
+  // List view filters
+  const [filterRegion, setFilterRegion] = useState<string | null>(null);
+  const [filterBudget, setFilterBudget] = useState<number | null>(null);
+  const [filterDuree, setFilterDuree] = useState<number | null>(null);
 
   const containerLayout = useRef({ width: 0, height: 0 });
   const onContainerLayout = useCallback((e: LayoutChangeEvent) => {
@@ -210,6 +236,13 @@ export function MapScreen() {
 
   const sorted = [...COUNTRIES].sort((a, b) => b.score - a.score);
 
+  const filtered = sorted.filter((c) => {
+    if (filterRegion && c.region !== filterRegion) return false;
+    if (filterBudget !== null && parseInt(c.budget.cost, 10) > filterBudget) return false;
+    if (filterDuree !== null && visaDureeToMonths(c.visa.duree) < filterDuree) return false;
+    return true;
+  });
+
   const SegControl = () => (
     <View style={styles.segControl}>
       <TouchableOpacity
@@ -229,6 +262,7 @@ export function MapScreen() {
 
   // ─── List view ───────────────────────────────────────────────────────────────
   if (view === 'list') {
+    const anyFilter = filterRegion !== null || filterBudget !== null || filterDuree !== null;
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.headerRow}>
@@ -241,9 +275,73 @@ export function MapScreen() {
           </View>
           <SegControl />
         </View>
+
+        {/* Filter pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.pillsScroll}
+          contentContainerStyle={styles.pillsContent}
+        >
+          {/* Region pills */}
+          {REGIONS.map((r) => {
+            const active = filterRegion === r;
+            return (
+              <TouchableOpacity
+                key={r}
+                style={[styles.pill, active && styles.pillActive]}
+                onPress={() => setFilterRegion(active ? null : r)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>{r}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {/* Budget pills */}
+          {BUDGET_TIERS.map((t) => {
+            const active = filterBudget === t.max;
+            return (
+              <TouchableOpacity
+                key={t.label}
+                style={[styles.pill, active && styles.pillActive]}
+                onPress={() => setFilterBudget(active ? null : t.max)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>{t.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {/* Visa duration pills */}
+          {DUREE_TIERS.map((t) => {
+            const active = filterDuree === t.min;
+            return (
+              <TouchableOpacity
+                key={t.label}
+                style={[styles.pill, active && styles.pillActive]}
+                onPress={() => setFilterDuree(active ? null : t.min)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>{t.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {anyFilter && (
+            <TouchableOpacity
+              style={[styles.pill, styles.pillReset]}
+              onPress={() => { setFilterRegion(null); setFilterBudget(null); setFilterDuree(null); }}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.pillResetText}>✕ Réinitialiser</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.listContainer}>
-            {sorted.map((country) => {
+            {filtered.length === 0 && (
+              <Text style={styles.emptyFilter}>Aucune destination ne correspond aux filtres.</Text>
+            )}
+            {filtered.map((country) => {
               const color = scoreColor(country.score);
               return (
                 <TouchableOpacity
@@ -548,4 +646,22 @@ const styles = StyleSheet.create({
   listScore: { fontFamily: Fonts.sansBold, fontSize: 16 },
   listScoreSub: { fontFamily: Fonts.sans, fontSize: 11, color: Colors.muted },
   listBudget: { fontFamily: Fonts.sans, fontSize: 12, color: Colors.muted },
+
+  // Filter pills
+  pillsScroll: { flexGrow: 0 },
+  pillsContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 7, flexDirection: 'row' },
+  pill: {
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 13,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pillActive: { backgroundColor: Colors.dark, borderColor: Colors.dark },
+  pillText: { fontFamily: Fonts.sansMedium, fontSize: 12.5, color: Colors.muted },
+  pillTextActive: { color: Colors.bg },
+  pillReset: { borderColor: Colors.red + '55', backgroundColor: Colors.redLight },
+  pillResetText: { fontFamily: Fonts.sansMedium, fontSize: 12.5, color: Colors.redText },
+  emptyFilter: { fontFamily: Fonts.sans, fontSize: 14, color: Colors.muted, textAlign: 'center', paddingTop: 32, paddingBottom: 16 },
 });

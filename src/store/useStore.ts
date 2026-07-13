@@ -29,6 +29,7 @@ interface AppState {
   // Persisted
   onboardingDone: boolean;
   isEditingProfile: boolean;
+  hasSeenHome: boolean;
   profile: UserProfile;
   favorites: string[];
   plans: ActivePlan[];
@@ -41,6 +42,7 @@ interface AppState {
   completeOnboarding: () => void;
   editProfile: () => void;
   resetAll: () => void;
+  markHomeSeen: () => void;
   setPendingInitialTab: (tab: string | null) => void;
   clearPendingInitialTab: () => void;
   toggleFavorite: (countryId: string) => void;
@@ -74,6 +76,7 @@ export const useStore = create<AppState>()(
     (set) => ({
       onboardingDone: false,
       isEditingProfile: false,
+      hasSeenHome: false,
       profile: DEFAULT_PROFILE,
       favorites: [],
       plans: [],
@@ -86,6 +89,7 @@ export const useStore = create<AppState>()(
       clearPendingInitialTab: () => set({ pendingInitialTab: null }),
 
       setProfile: (profile) => set({ profile }),
+      markHomeSeen: () => set({ hasSeenHome: true }),
 
       completeOnboarding: () => set({ onboardingDone: true, isEditingProfile: false }),
 
@@ -95,6 +99,7 @@ export const useStore = create<AppState>()(
         set({
           onboardingDone: false,
           isEditingProfile: false,
+          hasSeenHome: false,
           profile: DEFAULT_PROFILE,
           favorites: [],
           plans: [],
@@ -147,6 +152,7 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({
         onboardingDone: state.onboardingDone,
         isEditingProfile: state.isEditingProfile,
+        hasSeenHome: state.hasSeenHome,
         profile: state.profile,
         favorites: state.favorites,
         plans: state.plans,

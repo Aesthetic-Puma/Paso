@@ -113,7 +113,7 @@ export function CountryScreen() {
 
         {/* Status banner */}
         <View style={[styles.recommendBanner, { backgroundColor: scoreBg(score) }]}>
-          <Mascot posture="salut" size={44} />
+          <Mascot posture="progress" size={38} />
           <View style={styles.recommendText}>
             <Text style={[styles.recommendLabel, { color: scoreColor(score) }]}>{statusLabel}</Text>
             <Text style={styles.recommendDesc} numberOfLines={2}>Pour toi · {profileDesc}</Text>

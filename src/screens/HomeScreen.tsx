@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,11 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function HomeScreen() {
   const nav = useNavigation<Nav>();
-  const { profile, plans, favorites, activePlanCountryId } = useStore();
+  const { profile, plans, favorites, activePlanCountryId, hasSeenHome, markHomeSeen } = useStore();
+
+  useEffect(() => {
+    if (!hasSeenHome) markHomeSeen();
+  }, []);
 
   const activePlan = plans.find((p) => p.countryId === activePlanCountryId) ?? plans[0];
   const activeCountry = activePlan ? COUNTRIES.find((c) => c.id === activePlan.countryId) : null;
@@ -53,8 +57,8 @@ export function HomeScreen() {
           <View style={styles.greetRow}>
             <Mascot posture="salut" size={80} />
             <View style={styles.greetText}>
-              <Text style={styles.greetSub}>Bon retour,</Text>
-              <Text style={styles.greetName}>Camille</Text>
+              <Text style={styles.greetSub}>{hasSeenHome ? 'Bon retour,' : 'Bienvenue,'}</Text>
+              <Text style={styles.greetName}>{profile.name || 'Explorateur·rice'}</Text>
             </View>
           </View>
 
@@ -129,7 +133,7 @@ export function HomeScreen() {
             </View>
           ) : (
             <View style={[styles.card, styles.emptyCard]}>
-              <Mascot posture="explore" size={96} />
+              <Mascot posture="explore" size={120} />
               <Text style={styles.emptyTitle}>Tu n'as pas encore choisi de destination</Text>
               <Text style={styles.emptySubtitle}>
                 Explore la carte et ouvre une fiche pays pour créer ton premier plan d'action.
@@ -141,6 +145,15 @@ export function HomeScreen() {
               >
                 <Text style={styles.planBtnText}>Explorer la carte</Text>
               </TouchableOpacity>
+              {/* Decorative feasibility dots */}
+              <View style={styles.emptyDots}>
+                <View style={[styles.emptyDot, { backgroundColor: Colors.green }]} />
+                <View style={[styles.emptyDot, { backgroundColor: Colors.accent }]} />
+                <View style={[styles.emptyDot, { backgroundColor: Colors.red }]} />
+              </View>
+              <Text style={styles.emptyCount}>
+                {COUNTRIES.length} destinations déjà analysées selon ton profil
+              </Text>
             </View>
           )}
 
@@ -263,6 +276,9 @@ const styles = StyleSheet.create({
   planBtnText: { fontFamily: Fonts.sansSemiBold, fontSize: 15, color: Colors.bg },
   emptyTitle: { fontFamily: Fonts.serifMedium, fontSize: 22, lineHeight: 26, letterSpacing: -0.3, textAlign: 'center', marginTop: 8, color: Colors.dark },
   emptySubtitle: { fontFamily: Fonts.sans, fontSize: 13.5, color: '#6F6A60', textAlign: 'center', marginTop: 8, lineHeight: 20 },
+  emptyDots: { flexDirection: 'row', gap: 6, marginTop: 18 },
+  emptyDot: { width: 8, height: 8, borderRadius: 4 },
+  emptyCount: { fontFamily: Fonts.sans, fontSize: 12, color: Colors.muted, marginTop: 6, textAlign: 'center' },
   exploreBtn: {
     flexDirection: 'row',
     alignItems: 'center',
