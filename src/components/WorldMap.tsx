@@ -8,17 +8,14 @@ import { WorldMapPaths, VB_W, VB_H } from './WorldMapPaths';
 
 type Props = {
   revealedSet: ReadonlySet<string>;
-  style?: object;
 };
 
-export function WorldMap({ revealedSet, style }: Props) {
+export function WorldMap({ revealedSet }: Props) {
   return (
     <Svg
       width="100%"
       height="100%"
       viewBox={`0 0 ${VB_W} ${VB_H}`}
-      preserveAspectRatio="none"
-      style={style}
     >
       <WorldMapPaths revealedSet={revealedSet} />
     </Svg>

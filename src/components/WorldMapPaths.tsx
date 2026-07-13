@@ -44,9 +44,19 @@ export function lonLatToXY(lon: number, lat: number): [number, number] {
 
 function ringToPath(ring: number[][]): string {
   let d = '';
-  for (let i = 0; i < ring.length; i++) {
-    const [x, y] = lonLatToXY(ring[i][0], ring[i][1]);
-    d += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ',' + y.toFixed(2);
+  let prevLon: number | null = null;
+  let open = false;
+  for (const [lon, lat] of ring) {
+    const [x, y] = lonLatToXY(lon, lat);
+    const jump = prevLon !== null && Math.abs(lon - prevLon) > 180;
+    if (!open || jump) {
+      if (open) d += 'Z';
+      d += `M${x.toFixed(2)},${y.toFixed(2)}`;
+      open = true;
+    } else {
+      d += `L${x.toFixed(2)},${y.toFixed(2)}`;
+    }
+    prevLon = lon;
   }
   return d + 'Z';
 }
@@ -92,6 +102,7 @@ export function WorldMapPaths({ revealedSet }: Props) {
             fillOpacity={revealed ? 0.35 : 1}
             stroke={revealed ? scoreColor(country!.score) : '#C8BEB0'}
             strokeWidth={revealed ? 0.5 : 0.3}
+            fillRule="evenodd"
           />
         );
       })}

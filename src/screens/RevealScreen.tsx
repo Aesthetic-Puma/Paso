@@ -11,6 +11,7 @@ import {
 import { Colors, Fonts, scoreColor } from '../theme';
 import { Mascot } from '../components/Mascot';
 import { WorldMap } from '../components/WorldMap';
+import { VB_W, VB_H } from '../components/WorldMapPaths';
 import { COUNTRIES } from '../data/countries';
 import { useStore } from '../store/useStore';
 
@@ -97,10 +98,11 @@ export function RevealScreen() {
         </View>
       </View>
 
-      {/* Map */}
-      <View style={styles.mapContainer}>
+      {/* Map — centred vertically in the remaining flex space */}
+      <View style={styles.mapArea}>
+        <View style={styles.mapContainer}>
         {/* Country shape layer — colorizes progressively */}
-        <WorldMap revealedSet={revealedIds} style={StyleSheet.absoluteFillObject} />
+        <WorldMap revealedSet={revealedIds} />
 
         {/* Animated country pins — positioned to match SVG projection */}
         {REVEAL_ORDER.map((country, i) => {
@@ -131,6 +133,7 @@ export function RevealScreen() {
             </Animated.View>
           );
         })}
+        </View>
       </View>
 
       {/* Summary + CTA */}
@@ -189,12 +192,18 @@ const styles = StyleSheet.create({
     color: Colors.dark,
     letterSpacing: -0.3,
   },
-  mapContainer: {
+  // Flex wrapper that centres the 2:1 map block vertically
+  mapArea: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  // Actual map block — same aspect-ratio pattern as MapScreen
+  mapContainer: {
+    alignSelf: 'stretch',
+    aspectRatio: VB_W / VB_H,
     marginHorizontal: 12,
     backgroundColor: '#ede9e1',
     borderRadius: 20,
-    position: 'relative',
     overflow: 'hidden',
   },
   pinWrap: {
