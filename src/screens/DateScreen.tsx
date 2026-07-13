@@ -87,12 +87,9 @@ export function DateScreen() {
 
         {knownDate ? (
           <View style={styles.pickerCard}>
-            <View style={styles.pickerLabels}>
-              <Text style={styles.pickerLabel}>Mois</Text>
-              <Text style={styles.pickerLabel}>Année</Text>
-            </View>
-            <View style={styles.pickerRow}>
-              <View style={styles.pickerControl}>
+            <View style={styles.pickerSection}>
+              <Text style={styles.pickerLabel}>MOIS</Text>
+              <View style={styles.pickerRow}>
                 <TouchableOpacity style={styles.pickerBtn} onPress={monthPrev}>
                   <Text style={styles.pickerBtnText}>‹</Text>
                 </TouchableOpacity>
@@ -101,7 +98,10 @@ export function DateScreen() {
                   <Text style={styles.pickerBtnText}>›</Text>
                 </TouchableOpacity>
               </View>
-              <View style={[styles.pickerControl, styles.yearControl]}>
+            </View>
+            <View style={[styles.pickerSection, { marginTop: 12 }]}>
+              <Text style={styles.pickerLabel}>ANNÉE</Text>
+              <View style={styles.pickerRow}>
                 <TouchableOpacity style={styles.pickerBtn} onPress={yearPrev}>
                   <Text style={styles.pickerBtnText}>‹</Text>
                 </TouchableOpacity>
@@ -185,17 +185,16 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
-  pickerLabels: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   pickerLabel: {
     fontFamily: Fonts.sansBold,
     fontSize: 11,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     color: '#9a9384',
+    marginBottom: 8,
   },
-  pickerRow: { flexDirection: 'row', gap: 14 },
-  pickerControl: {
-    flex: 1,
+  pickerSection: {},
+  pickerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -203,7 +202,6 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     padding: 8,
   },
-  yearControl: { flex: 0, width: 150 },
   pickerBtn: {
     width: 36,
     height: 36,

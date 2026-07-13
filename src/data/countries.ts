@@ -18,6 +18,14 @@ export interface Phase {
   tasks: Task[];
 }
 
+export interface EmploiByProfession {
+  tech: string;
+  hotellerie: string;
+  business: string;
+  entrepreneur: string;
+  etudiant: string;
+}
+
 export interface Country {
   id: string;
   code: string;
@@ -35,6 +43,7 @@ export interface Country {
   lat: number;
   lon: number;
   criteria: { label: string; score: number; text: string }[];
+  emploiByProfession: EmploiByProfession;
   visa: { title: string; duree: string; conditions: string; source: string };
   budget: { cost: string; unit: string; compareText: string; source: string };
   salaire: { amount: string; unit: string; role: string; source: string };
@@ -316,6 +325,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 88, text: 'Ingénieurs très demandés, salaires élevés' },
       { label: "Frais d'installation", score: 62, text: 'Prévoir environ 5 500 € pour l\'installation initiale' },
     ],
+    emploiByProfession: {
+      tech: 'Ingénieurs & devs très demandés, salaires élevés — Seek & LinkedIn actifs',
+      hotellerie: 'Hôtellerie & restauration en tension, recrutement facile sur place',
+      business: 'Commerce & design en essor, nombreuses PME recrutent localement',
+      entrepreneur: 'Écosystème startup favorable, ABN (numéro entreprise) simple à obtenir',
+      etudiant: 'WHV idéal pour travailler pendant les études, nombreux emplois étudiants',
+    },
     visa: {
       title: 'Working Holiday Visa (417)',
       duree: '12 mois, renouvelable',
@@ -353,6 +369,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 78, text: 'Marché tech dynamique à Toronto & Montréal' },
       { label: "Frais d'installation", score: 70, text: 'Prévoir environ 3 000 € pour l\'installation' },
     ],
+    emploiByProfession: {
+      tech: 'Scène tech dynamique à Montréal & Toronto — IA & fintech en tête',
+      hotellerie: 'Secteur hospitality très actif, bilinguisme un atout majeur',
+      business: 'Commerce & santé recherchés, marché du travail bilingue',
+      entrepreneur: 'Écosystème startup mature, accès au réseau YC & C100',
+      etudiant: 'EIC ouvert aux 18–35 ans, nombreux co-ops & stages bien reconnus',
+    },
     visa: {
       title: 'Permis Vacances-Travail (EIC)',
       duree: '12 à 24 mois selon accord',
@@ -390,6 +413,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 66, text: 'Marché tech en croissance, salaires inférieurs à la France' },
       { label: "Frais d'installation", score: 78, text: 'Prévoir environ 2 500 € pour s\'installer' },
     ],
+    emploiByProfession: {
+      tech: 'Hub tech en croissance (Farfetch, Feedzai), salaires –30 % vs France',
+      hotellerie: 'Tourisme en boom — recrutement facile mais salaires modestes',
+      business: 'Marché local dynamique, salaires inférieurs à la France',
+      entrepreneur: 'Visa D8 nomade numérique ou statut NHR fiscal, idéal pour les indépendants',
+      etudiant: 'Coût de vie très bas, bonne communauté étudiante internationale',
+    },
     visa: {
       title: 'Libre circulation UE / Certificat de résidence',
       duree: 'Illimitée (titre renouvelable tous les 5 ans)',
@@ -427,6 +457,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 72, text: 'Marché tech limité mais bonne qualité de vie pro' },
       { label: "Frais d'installation", score: 60, text: 'Prévoir environ 4 200 NZD de fonds initiaux' },
     ],
+    emploiByProfession: {
+      tech: 'Marché tech concentré à Auckland & Wellington — Xero, Vend, MYOB recrutent',
+      hotellerie: 'Tourisme en reprise, WHV permet de travailler librement dans l\'hôtellerie',
+      business: 'Petite économie ouverte, marché anglophone facilement accessible',
+      entrepreneur: 'Création d\'entreprise simple, faible fiscalité sur revenus étrangers',
+      etudiant: 'WHV idéal pour financer son voyage, nombreux jobs saisonniers agricoles',
+    },
     visa: {
       title: 'Working Holiday Visa',
       duree: '12 mois (extensible 23 mois)',
@@ -464,6 +501,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 80, text: 'Marché tech très fort, pénurie de développeurs' },
       { label: "Frais d'installation", score: 72, text: 'Prévoir 2 000–3 000 € pour l\'installation à Berlin' },
     ],
+    emploiByProfession: {
+      tech: '"Silicon Allee" à Berlin — pénurie de devs, recrutement actif en anglais',
+      hotellerie: 'Secteur hospitality demande un niveau d\'allemand B1 minimum',
+      business: 'Commerce & santé très réglementés, reconnaissance de diplômes requise',
+      entrepreneur: 'Freiberufler possible, mais TVA et Krankenversicherung complexes à gérer',
+      etudiant: 'Universités publiques gratuites, Werkstudent (20 h/sem) bien rémunéré',
+    },
     visa: {
       title: 'Libre circulation UE / Niederlassungserlaubnis',
       duree: 'Illimitée (RP automatique UE)',
@@ -501,6 +545,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 70, text: 'Forte demande en tech mais marché très local' },
       { label: "Frais d'installation", score: 55, text: 'Shikikin (caution) = 2–3 mois de loyer à prévoir' },
     ],
+    emploiByProfession: {
+      tech: 'Forte demande tech (Mercari, CyberAgent), recrutement en anglais possible',
+      hotellerie: 'Hôtellerie & tourisme en plein essor post-COVID, japonais souvent requis',
+      business: 'Marché très local, JLPT N2 conseillé pour les postes de management',
+      entrepreneur: 'Business Visa possible mais bureaucratie lourde — startup visa en croissance',
+      etudiant: 'PVT franco-japonais (quota 1 500/an), idéal pour découvrir le marché local',
+    },
     visa: {
       title: 'PVT franco-japonais (Programme Vacances-Travail)',
       duree: '12 mois, non renouvelable',
@@ -538,6 +589,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 66, text: 'Marché tech avancé mais marché local avant tout' },
       { label: "Frais d'installation", score: 58, text: 'Caution (jeonse/wolse) importante à prévoir' },
     ],
+    emploiByProfession: {
+      tech: 'Géants tech (Samsung, Kakao, Naver) — recrutement majoritairement coréanophone',
+      hotellerie: 'K-tourisme en hausse, quelques postes en anglais dans les hôtels de Séoul',
+      business: 'Marché concentré sur le coréen, expats recherchés dans les multinationales',
+      entrepreneur: 'Startup visa disponible, écosystème en croissance mais marché local fermé',
+      etudiant: 'WHV franco-coréen (500 places/an), idéal pour apprendre la langue sur place',
+    },
     visa: {
       title: "Working Holiday Visa franco-coréen",
       duree: '12 mois, non renouvelable',
@@ -571,6 +629,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 74, text: 'Marché finance, immobilier, tech en forte croissance' },
       { label: "Frais d'installation", score: 50, text: 'Installation coûteuse, logement très cher' },
     ],
+    emploiByProfession: {
+      tech: 'Tech & fintech en forte croissance à Dubaï — recrutement 100 % anglophone',
+      hotellerie: 'Hôtellerie de luxe très recrutrice, visa fourni par l\'employeur',
+      business: 'Finance & immobilier en boom, salaires attractifs sans impôt sur le revenu',
+      entrepreneur: 'Free Zone (DIFC, DMCC) pour indépendants — création simple et rapide',
+      etudiant: 'Peu de postes étudiants — visa de travail uniquement via employeur sponsor',
+    },
     visa: {
       title: 'Visa de travail (Employment Visa)',
       duree: '2 ou 3 ans, renouvelable',
@@ -604,6 +669,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 80, text: 'Hub financier et tech de l\'Asie du Sud-Est' },
       { label: "Frais d'installation", score: 42, text: 'Installation très coûteuse, prévoir un budget conséquent' },
     ],
+    emploiByProfession: {
+      tech: 'Hub tech Asie-Pacifique (Google, Grab, Sea) — EP ≥ 5 000 SGD/mois requis',
+      hotellerie: 'Hôtellerie haut de gamme — EP ou S Pass selon salaire proposé',
+      business: 'Finance & biomedical très actifs — Employment Pass nécessite une offre d\'emploi',
+      entrepreneur: 'EntrePass pour fondateurs, mais exigences capital et innovation strictes',
+      etudiant: 'Peu accessible sans emploi garanti — visa très contraint sur le salaire minimum',
+    },
     visa: {
       title: 'Employment Pass (EP)',
       duree: '1 à 2 ans, renouvelable',
@@ -637,6 +709,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 54, text: 'Marché tech en croissance mais instabilité économique' },
       { label: "Frais d'installation", score: 62, text: 'Frais d\'installation modérés selon la ville' },
     ],
+    emploiByProfession: {
+      tech: 'Fintech & agritech en croissance — mais marché instable et dossier visa long',
+      hotellerie: 'Tourisme dynamique à Rio & Florianópolis, mais salaires locaux très bas',
+      business: 'Commerce actif — bureaucratie et démarches visa complexes à anticiper',
+      entrepreneur: 'CNPJ (statut auto-entrepreneur) possible mais lent à obtenir',
+      etudiant: 'Peu de structures WHV — visa de travail via entreprise brésilienne uniquement',
+    },
     visa: {
       title: 'Visa de travail (VITEM V)',
       duree: '1 à 2 ans, renouvelable',
@@ -670,6 +749,13 @@ export const COUNTRIES: Country[] = [
       { label: 'Emploi', score: 60, text: 'Salaires très élevés mais visa complexe à obtenir' },
       { label: "Frais d'installation", score: 38, text: 'Caution + frais légaux + santé très coûteux' },
     ],
+    emploiByProfession: {
+      tech: 'Salaires GAFAM très élevés — mais H-1B loterie (22 %) bloque l\'accès',
+      hotellerie: 'Secteur hospitality accessible via J-1, très encadré et souvent saisonnier',
+      business: 'O-1 Talent possible pour profils exceptionnels — sinon H-1B obligatoire',
+      entrepreneur: 'EB-5 (investissement $800k+) ou E-2 Treaty Investor pour indépendants',
+      etudiant: 'J-1 Work & Travel pour étudiants — limité à l\'été et aux jobs saisonniers',
+    },
     visa: {
       title: 'H-1B (Specialty Occupation)',
       duree: '3 ans, extensible à 6 ans',

@@ -13,7 +13,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { Colors, Fonts, scoreColor } from '../theme';
-import { PasoLogo } from '../components/PasoLogo';
 import { Mascot } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { TaskCard } from '../components/TaskCard';
@@ -110,7 +109,9 @@ export function DashboardScreen() {
           <TouchableOpacity onPress={() => nav.goBack()}>
             <Text style={styles.backText}>‹ {country.name}</Text>
           </TouchableOpacity>
-          <PasoLogo size="sm" />
+          <TouchableOpacity style={styles.homeBtn} onPress={() => nav.navigate('Home' as any)}>
+            <Text style={styles.homeBtnText}>⌂ Accueil</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.headerMain}>
           <View>
@@ -245,6 +246,15 @@ const styles = StyleSheet.create({
   },
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
   backText: { fontFamily: Fonts.sansMedium, fontSize: 14, color: '#6F6A60' },
+  homeBtn: {
+    backgroundColor: Colors.card,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  homeBtnText: { fontFamily: Fonts.sansSemiBold, fontSize: 13, color: Colors.dark },
   headerMain: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 },
   planLabel: {
     fontFamily: Fonts.sansSemiBold,

@@ -92,10 +92,10 @@ function visaDureeToMonths(duree: string): number {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const incomeToString = (v: string) => {
-  if (v === '< 1 500 €') return '1 200 €/mois';
-  if (v === '1 500 – 2 500 €') return '2 000 €/mois';
-  if (v === '2 500 – 4 000 €') return '3 250 €/mois';
-  return '4 500 €/mois';
+  if (v === '< 1 500 €') return '1 200 €/mois';
+  if (v === '1 500 – 2 500 €') return '2 000 €/mois';
+  if (v === '2 500 – 4 000 €') return '3 250 €/mois';
+  return '4 500 €/mois';
 };
 const scoreLabel = (s: number) =>
   s >= 70 ? 'Accessible' : s >= 45 ? 'Sous conditions' : 'Difficile';
@@ -228,7 +228,7 @@ export function MapScreen() {
     profile.domain,
     profile.nationality,
     isNonIncome
-      ? (profile.savings ? `Épargne ${profile.savings}` : null)
+      ? (profile.savings ? `Épargne ${profile.savings.replace(/ /g, ' ')}` : null)
       : (profile.monthlyIncome ? incomeToString(profile.monthlyIncome) : null),
   ]
     .filter(Boolean)
@@ -510,6 +510,7 @@ export function MapScreen() {
 
         <VerifiedTag
           verifiedAt={getGlobalDateRange().oldest}
+          verifiedUntil={getGlobalDateRange().newest}
           source="Paso · 11 destinations"
           style={{ marginTop: 6 }}
         />

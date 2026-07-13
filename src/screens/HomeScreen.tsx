@@ -57,8 +57,8 @@ export function HomeScreen() {
           <View style={styles.greetRow}>
             <Mascot posture="salut" size={80} />
             <View style={styles.greetText}>
-              <Text style={styles.greetSub}>{hasSeenHome ? 'Bon retour,' : 'Bienvenue,'}</Text>
-              <Text style={styles.greetName}>{profile.name || 'Explorateur·rice'}</Text>
+              <Text style={styles.greetSub}>{hasSeenHome ? 'Bon retour' : 'Bienvenue'}{profile.name ? ',' : ' !'}</Text>
+              {profile.name ? <Text style={styles.greetName}>{profile.name}</Text> : null}
             </View>
           </View>
 
@@ -140,7 +140,7 @@ export function HomeScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.planBtn}
-                onPress={() => nav.navigate('Main' as any)}
+                onPress={() => nav.navigate('Map' as any)}
                 activeOpacity={0.85}
               >
                 <Text style={styles.planBtnText}>Explorer la carte</Text>
@@ -160,7 +160,7 @@ export function HomeScreen() {
           <Text style={[styles.sectionLabel, { marginTop: 26, marginBottom: 11 }]}>Explorer</Text>
           <TouchableOpacity
             style={styles.exploreBtn}
-            onPress={() => nav.navigate('Main' as any)}
+            onPress={() => nav.navigate('Map' as any)}
             activeOpacity={0.85}
           >
             <View style={styles.miniMapGrid}>

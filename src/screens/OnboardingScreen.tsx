@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -175,12 +176,14 @@ export function OnboardingScreen({ navigation }: Props) {
   });
 
   const [step, setStep] = useState(() => (isEditingProfile ? TOTAL_QUESTIONS : 0));
+  const [showNameStep, setShowNameStep] = useState(false);
+  const [nameInput, setNameInput] = useState(() => (isEditingProfile ? profile.name : ''));
 
   const questions = useMemo(() => buildQuestions(answers), [answers.incomeAssured]);
   const total = questions.length;
   const isRecap = step === total;
   const current = questions[step];
-  const pct = isRecap ? 100 : ((step + 1) / total) * 100;
+  const pct = isRecap || showNameStep ? 100 : ((step + 1) / total) * 100;
 
   const isNonIncome = (answers.incomeAssured ?? '').startsWith('Non');
 
@@ -197,13 +200,14 @@ export function OnboardingScreen({ navigation }: Props) {
   };
 
   const back = () => {
+    if (showNameStep) { setShowNameStep(false); return; }
     if (step > 0) setStep(step - 1);
     else navigation.goBack();
   };
 
-  const finish = () => {
-    const profile: UserProfile = {
-      name: '',
+  const finish = (name: string) => {
+    const newProfile: UserProfile = {
+      name: name.trim(),
       status: answers.status ?? 'Étudiant·e',
       nationality: answers.nationality ?? 'Française',
       objective: answers.objective ?? 'Travailler',
@@ -214,7 +218,7 @@ export function OnboardingScreen({ navigation }: Props) {
       domain: answers.domain ?? 'Ingénierie',
       englishLevel: answers.englishLevel ?? 'Intermédiaire',
     };
-    setProfile(profile);
+    setProfile(newProfile);
     navigation.replace('Reveal');
   };
 
@@ -251,7 +255,36 @@ export function OnboardingScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        {!isRecap ? (
+        {showNameStep ? (
+          <View style={styles.questionWrap}>
+            <Text style={styles.section}>PERSONNALISATION</Text>
+            <Text style={styles.question}>Comment veux-tu qu'on t'appelle ?</Text>
+            <TextInput
+              style={styles.nameInput}
+              placeholder="Ton prénom"
+              placeholderTextColor={Colors.mutedLight}
+              value={nameInput}
+              onChangeText={setNameInput}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={() => finish(nameInput)}
+            />
+            <TouchableOpacity
+              style={[styles.primaryBtn, { marginTop: 16 }]}
+              onPress={() => finish(nameInput)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.primaryBtnText}>Continuer →</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.skipBtn}
+              onPress={() => finish('')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipBtnText}>Passer</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !isRecap ? (
           <View style={styles.questionWrap}>
             <Text style={styles.section}>{current.section}</Text>
             <Text style={styles.question}>{current.text}</Text>
@@ -294,9 +327,9 @@ export function OnboardingScreen({ navigation }: Props) {
           </ScrollView>
         )}
 
-        {isRecap && (
+        {isRecap && !showNameStep && (
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.primaryBtn} onPress={finish} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={() => setShowNameStep(true)} activeOpacity={0.85}>
               <Text style={styles.primaryBtnText}>Voir mes destinations</Text>
             </TouchableOpacity>
           </View>
@@ -407,4 +440,20 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   primaryBtnText: { fontFamily: Fonts.sansSemiBold, fontSize: 16.5, color: Colors.bg },
+  nameInput: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    fontFamily: Fonts.sansMedium,
+    fontSize: 18,
+    color: Colors.dark,
+    shadowColor: Colors.dark,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  skipBtn: { alignItems: 'center', paddingVertical: 16 },
+  skipBtnText: { fontFamily: Fonts.sansMedium, fontSize: 14, color: Colors.muted },
 });

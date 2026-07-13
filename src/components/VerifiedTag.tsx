@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { Colors, Fonts } from '../theme';
 
 interface Props {
-  verifiedAt: string; // 'YYYY-MM-DD'
+  verifiedAt: string;    // 'YYYY-MM-DD' — oldest date (or single date)
+  verifiedUntil?: string; // 'YYYY-MM-DD' — newest date; when present, shows range
   source?: string;
   style?: object;
 }
@@ -32,10 +33,12 @@ function staleness(days: number): Staleness {
   return 'stale';
 }
 
-export function VerifiedTag({ verifiedAt, source, style }: Props) {
+export function VerifiedTag({ verifiedAt, verifiedUntil, source, style }: Props) {
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
-  const days = daysSince(verifiedAt);
+  // Staleness is based on the newest date (verifiedUntil if range, else verifiedAt)
+  const newestDate = verifiedUntil ?? verifiedAt;
+  const days = daysSince(newestDate);
   const state = staleness(days);
   const months = Math.round(days / 30);
 
@@ -43,7 +46,22 @@ export function VerifiedTag({ verifiedAt, source, style }: Props) {
   let dotColor: string;
   let label: string;
 
-  if (state === 'fresh') {
+  if (verifiedUntil) {
+    // Range mode: "entre le [oldest] et le [newest]"
+    if (state === 'fresh') {
+      dot = '✓';
+      dotColor = Colors.green;
+      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)}${source ? ` · ${source}` : ''}`;
+    } else if (state === 'aging') {
+      dot = '●';
+      dotColor = Colors.accent;
+      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)} — mise à jour partielle${source ? ` · ${source}` : ''}`;
+    } else {
+      dot = '●';
+      dotColor = Colors.mutedLight;
+      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)} — à revérifier`;
+    }
+  } else if (state === 'fresh') {
     dot = '✓';
     dotColor = Colors.green;
     label = `Vérifié le ${formatDate(verifiedAt)}${source ? ` · ${source}` : ''}`;
@@ -84,11 +102,15 @@ export function VerifiedTag({ verifiedAt, source, style }: Props) {
             <Text style={styles.tooltipTitle}>À propos de cette donnée</Text>
             <Text style={styles.tooltipBody}>
               Paso vérifie régulièrement ses données auprès des sources officielles.
-              {source ? ` Cette information provient de ${source}.` : ''}
+              {verifiedUntil
+                ? ` Dernière vérification le ${formatDate(verifiedUntil)}.`
+                : source ? ` Cette information provient de ${source}.` : ''}
             </Text>
             {state === 'stale' && (
               <Text style={styles.tooltipWarning}>
-                Cette donnée date de plus de 3 mois. Vérifiez sur la source officielle avant toute démarche.
+                {verifiedUntil
+                  ? `La donnée la plus récente date de plus de 3 mois. Vérifiez sur les sources officielles avant toute démarche.`
+                  : 'Cette donnée date de plus de 3 mois. Vérifiez sur la source officielle avant toute démarche.'}
               </Text>
             )}
             <TouchableOpacity style={styles.tooltipClose} onPress={() => setTooltipVisible(false)}>

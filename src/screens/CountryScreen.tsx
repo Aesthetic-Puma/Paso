@@ -39,6 +39,18 @@ const savingsToNumber = (v: string): number => {
   return 7000;
 };
 
+type ProfessionKey = 'tech' | 'hotellerie' | 'business' | 'entrepreneur' | 'etudiant';
+
+function getProfessionKey(domain: string, status: string): ProfessionKey {
+  if (status === 'Étudiant·e') return 'etudiant';
+  if (domain === 'Ingénierie' || domain === 'Tech & Data') return 'tech';
+  if (domain === 'Hôtellerie') return 'hotellerie';
+  if (domain === 'Commerce') return 'entrepreneur';
+  return 'business';
+}
+
+const POSITIVE_WORDS = /\b(suffisant|abordable|gérable|modéré|raisonnable)\b/i;
+
 export function CountryScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<Route>();
@@ -59,22 +71,23 @@ export function CountryScreen() {
 
   const isNonIncome = profile.incomeAssured.startsWith('Non');
   const countryCost = parseInt(country.budget.cost, 10);
+  const professionKey = getProfessionKey(profile.domain, profile.status);
 
   let budgetText: string;
   let budgetTextColor: string;
   if (isNonIncome) {
     const savingsAmt = savingsToNumber(profile.savings);
     const months = Math.round(savingsAmt / countryCost);
-    budgetText = `Avec ${savingsAmt.toLocaleString('fr-FR')} € d'épargne, tu peux tenir ≈ ${months} mois dans ce pays.`;
+    budgetText = `Épargne ${profile.savings} · ≈ ${months} mois d'autonomie (base ${countryCost.toLocaleString('fr-FR')} €/mois)`;
     budgetTextColor = Colors.accent;
   } else {
     const userIncome = incomeToNumber(profile.monthlyIncome);
     const leftover = userIncome - countryCost;
     if (leftover > 0) {
-      budgetText = `Ton revenu de ${userIncome.toLocaleString('fr-FR')} €/mois te laisse ≈ ${leftover.toLocaleString('fr-FR')} €/mois d'épargne ici.`;
+      budgetText = `Revenu ${userIncome.toLocaleString('fr-FR')} €/mois · il te resterait ≈ ${leftover.toLocaleString('fr-FR')} €/mois d'épargne ici.`;
       budgetTextColor = Colors.green;
     } else {
-      budgetText = `Ton revenu de ${userIncome.toLocaleString('fr-FR')} €/mois couvre ${Math.round((userIncome / countryCost) * 100)}% des frais de vie estimés.`;
+      budgetText = `Revenu ${userIncome.toLocaleString('fr-FR')} €/mois · couvre ${Math.round((userIncome / countryCost) * 100)} % des frais estimés.`;
       budgetTextColor = Colors.muted;
     }
   }
@@ -83,8 +96,8 @@ export function CountryScreen() {
     profile.domain,
     profile.nationality.toLowerCase(),
     isNonIncome
-      ? (profile.savings ? `épargne ${savingsToNumber(profile.savings).toLocaleString('fr-FR')} €` : null)
-      : (profile.monthlyIncome ? `revenu ${incomeToNumber(profile.monthlyIncome).toLocaleString('fr-FR')} €/mois` : null),
+      ? (profile.savings ? `épargne ${profile.savings}` : null)
+      : (profile.monthlyIncome ? `revenu ${incomeToNumber(profile.monthlyIncome).toLocaleString('fr-FR')} €/mois` : null),
   ].filter(Boolean).join(' · ');
 
   return (
@@ -125,7 +138,10 @@ export function CountryScreen() {
           <Text style={styles.sectionTitle}>Pourquoi ce score ?</Text>
           <View style={styles.criteriaCard}>
             {country.criteria.map((cr, i) => {
-              const isGood = cr.score >= 70;
+              const isGood = cr.score >= 70 || (cr.score >= 60 && POSITIVE_WORDS.test(cr.text));
+              const text = cr.label === 'Emploi'
+                ? (country.emploiByProfession[professionKey] ?? cr.text)
+                : cr.text;
               return (
                 <View
                   key={cr.label}
@@ -139,7 +155,7 @@ export function CountryScreen() {
                   <Text style={styles.criteriaText}>
                     <Text style={styles.criteriaCat}>{cr.label}</Text>
                     <Text style={styles.criteriaSep}> · </Text>
-                    <Text style={styles.criteriaDesc}>{cr.text}</Text>
+                    <Text style={styles.criteriaDesc}>{text}</Text>
                   </Text>
                 </View>
               );
