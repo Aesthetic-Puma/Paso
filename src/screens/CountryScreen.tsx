@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,6 +22,16 @@ import { useStore } from '../store/useStore';
 import { VerifiedTag } from '../components/VerifiedTag';
 import { VERIFIED_DATES } from '../data/verifiedDates';
 import { useFeedbackStore } from '../store/useFeedbackStore';
+import { getExchangeRates, enrichWithEUR, Rates } from '../lib/api/exchangeRates';
+import {
+  fetchJobs,
+  refreshJobs as apiRefreshJobs,
+  isAdzunaEnabled,
+  isAdzunaSupported,
+  AdzunaResult,
+  COUNTRY_CURRENCY,
+} from '../lib/api/adzuna';
+import { CacheResult } from '../lib/api/cache';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'Country'>;
@@ -62,7 +73,32 @@ export function CountryScreen() {
   const [corrSubmitted, setCorrSubmitted] = useState(false);
   const submitFeedback = useFeedbackStore((s) => s.submitFeedback);
 
+  const [rates, setRates] = useState<Rates | null>(null);
+  const [jobsResult, setJobsResult] = useState<CacheResult<AdzunaResult> | null>(null);
+  const [jobsRefreshing, setJobsRefreshing] = useState(false);
+  const mountedRef = useRef(true);
+
   const country = COUNTRIES.find((c) => c.id === countryId);
+  const canFetchJobs = country ? isAdzunaEnabled() && isAdzunaSupported(countryId) : false;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    getExchangeRates().then((r) => { if (mountedRef.current) setRates(r); });
+    if (canFetchJobs) {
+      const profKey = getProfessionKey(profile.domain, profile.status);
+      fetchJobs(countryId, profKey).then((r) => { if (mountedRef.current) setJobsResult(r); });
+    }
+    return () => { mountedRef.current = false; };
+  }, [countryId]);
+
+  const handleRefreshJobs = async () => {
+    if (!canFetchJobs || jobsRefreshing) return;
+    setJobsRefreshing(true);
+    const profKey = getProfessionKey(profile.domain, profile.status);
+    const r = await apiRefreshJobs(countryId, profKey);
+    if (mountedRef.current) { setJobsResult(r); setJobsRefreshing(false); }
+  };
+
   if (!country) return null;
 
   const isFav = favorites.includes(countryId);
@@ -99,6 +135,42 @@ export function CountryScreen() {
       ? (profile.savings ? `épargne ${profile.savings}` : null)
       : (profile.monthlyIncome ? `revenu ${incomeToNumber(profile.monthlyIncome).toLocaleString('fr-FR')} €/mois` : null),
   ].filter(Boolean).join(' · ');
+
+  // Visa conditions enriched with EUR equivalents when rates are available
+  const visaConditions = enrichWithEUR(country.visa.conditions, rates);
+
+  // Jobs: live data from Adzuna when available, else mock from countries.ts
+  const isLive = canFetchJobs && jobsResult !== null;
+  const currency = COUNTRY_CURRENCY[countryId] ?? '';
+  const displayJobs = isLive && jobsResult!.data.jobs.length > 0
+    ? jobsResult!.data.jobs.map((j) => ({
+        title: j.title,
+        company: j.company,
+        salary: j.salaryMin
+          ? `${j.salaryMin.toLocaleString('fr-FR')} ${j.currency}${j.salaryMax && j.salaryMax !== j.salaryMin ? ` – ${j.salaryMax.toLocaleString('fr-FR')}` : ''}/an`
+          : '',
+        ago: (() => {
+          const d = Math.floor((Date.now() - new Date(j.created).getTime()) / 86_400_000);
+          return d === 0 ? "aujourd'hui" : `${d} j`;
+        })(),
+      }))
+    : country.jobs.map((j) => ({ title: j.title, company: j.company, salary: j.salary, ago: j.ago }));
+
+  const liveJobCount = isLive && jobsResult!.data.totalCount > 0
+    ? `${jobsResult!.data.totalCount.toLocaleString('fr-FR')} offres`
+    : country.jobsCount;
+
+  const avgSalaryDisplay = (() => {
+    if (!isLive || !jobsResult!.data.avgSalaryMin) return null;
+    const { avgSalaryMin, avgSalaryMax } = jobsResult!.data;
+    const base = `Salaire moyen : ${avgSalaryMin!.toLocaleString('fr-FR')}${avgSalaryMax && avgSalaryMax !== avgSalaryMin ? ` – ${avgSalaryMax.toLocaleString('fr-FR')}` : ''} ${currency}/an`;
+    if (rates && currency && (rates as Record<string, number>)[currency]) {
+      const rate = (rates as Record<string, number>)[currency];
+      const eurMin = Math.round(avgSalaryMin! / rate);
+      return `${base} (≈ ${eurMin.toLocaleString('fr-FR')} €)`;
+    }
+    return base;
+  })();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -177,7 +249,7 @@ export function CountryScreen() {
               <Text style={styles.infoMetaLabel}>Durée — </Text>
               {country.visa.duree}
             </Text>
-            <Text style={styles.infoDesc}>{country.visa.conditions}</Text>
+            <Text style={styles.infoDesc}>{visaConditions}</Text>
             <VerifiedTag
               verifiedAt={VERIFIED_DATES[countryId]?.visa ?? '2026-01-01'}
               source={country.visa.source}
@@ -251,27 +323,51 @@ export function CountryScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Données en direct */}
+        {/* Offres d'emploi — live ou estimation */}
         <View style={styles.section}>
           <View style={styles.liveHeader}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveLabel}>Données en direct</Text>
-            <Text style={styles.liveSync}>synchronisé à l'instant</Text>
+            <View style={[styles.liveDot, { backgroundColor: isLive ? Colors.green : Colors.mutedLight }]} />
+            <Text style={styles.liveLabel}>{isLive ? 'Données en direct' : 'Estimation'}</Text>
+            <TouchableOpacity
+              onPress={handleRefreshJobs}
+              disabled={jobsRefreshing || !canFetchJobs}
+              style={styles.refreshBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              {jobsRefreshing
+                ? <ActivityIndicator size="small" color={Colors.muted} />
+                : <Text style={[styles.refreshText, !canFetchJobs && { opacity: 0.3 }]}>↻</Text>}
+            </TouchableOpacity>
           </View>
-          <View style={styles.liveCard}>
+          <View style={[styles.liveCard, styles.jobsCard]}>
             <View style={styles.jobsHeader}>
               <Text style={styles.jobsTitle}>Offres d'emploi · {country.salaire.role}</Text>
-              <Text style={styles.jobsCount}>{country.jobsCount}</Text>
+              <Text style={styles.jobsCount}>{liveJobCount}</Text>
             </View>
-            {country.jobs.map((job, i) => (
+            {avgSalaryDisplay && (
+              <Text style={styles.avgSalary}>{avgSalaryDisplay}</Text>
+            )}
+            {displayJobs.map((job, i) => (
               <View key={i} style={[styles.jobRow, i > 0 && styles.jobBorder]}>
                 <View style={styles.jobInfo}>
                   <Text style={styles.jobTitle}>{job.title}</Text>
-                  <Text style={styles.jobCompany}>{job.company} · {job.salary}</Text>
+                  <Text style={styles.jobCompany}>{job.company}{job.salary ? ` · ${job.salary}` : ''}</Text>
                 </View>
-                <Text style={styles.jobAgo}>il y a {job.ago}</Text>
+                <Text style={styles.jobAgo}>{job.ago}</Text>
               </View>
             ))}
+            {isLive
+              ? <VerifiedTag
+                  liveAt={jobsResult!.fetchedAt}
+                  source="Adzuna"
+                  style={{ marginTop: 6, marginBottom: 6 }}
+                />
+              : <VerifiedTag
+                  verifiedAt={VERIFIED_DATES[countryId]?.salaire ?? '2026-01-01'}
+                  source="estimation Paso"
+                  style={{ marginTop: 6, marginBottom: 6 }}
+                />
+            }
           </View>
 
           <View style={[styles.liveCard, { marginTop: 12 }]}>
@@ -558,6 +654,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
+  jobsCard: { minHeight: 240 },
   jobsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -568,6 +665,15 @@ const styles = StyleSheet.create({
   },
   jobsTitle: { fontFamily: Fonts.sansSemiBold, fontSize: 13.5, color: Colors.dark },
   jobsCount: { fontFamily: Fonts.sans, fontSize: 11.5, color: Colors.muted },
+  avgSalary: {
+    fontFamily: Fonts.sansMedium,
+    fontSize: 12,
+    color: Colors.green,
+    paddingTop: 8,
+    paddingBottom: 2,
+  },
+  refreshBtn: { marginLeft: 'auto', paddingLeft: 8 },
+  refreshText: { fontSize: 18, color: Colors.muted },
   jobRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
   jobBorder: { borderTopWidth: 1, borderTopColor: Colors.separator },
   jobInfo: { flex: 1, minWidth: 0 },

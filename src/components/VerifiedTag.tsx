@@ -3,8 +3,9 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { Colors, Fonts } from '../theme';
 
 interface Props {
-  verifiedAt: string;    // 'YYYY-MM-DD' — oldest date (or single date)
+  verifiedAt?: string;   // 'YYYY-MM-DD' — oldest date (or single date); optional when liveAt is set
   verifiedUntil?: string; // 'YYYY-MM-DD' — newest date; when present, shows range
+  liveAt?: number;       // ms timestamp — when present: live data mode (green, "Données en direct")
   source?: string;
   style?: object;
 }
@@ -33,11 +34,46 @@ function staleness(days: number): Staleness {
   return 'stale';
 }
 
-export function VerifiedTag({ verifiedAt, verifiedUntil, source, style }: Props) {
+function hoursAgo(ts: number): number {
+  return Math.round((Date.now() - ts) / 3_600_000);
+}
+
+export function VerifiedTag({ verifiedAt, verifiedUntil, liveAt, source, style }: Props) {
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
+  // Live data mode — always green
+  if (liveAt !== undefined) {
+    const h = hoursAgo(liveAt);
+    const liveLabel = `Données en direct · ${source ?? ''} · il y a ${h} h`;
+    return (
+      <>
+        <TouchableOpacity
+          style={[styles.row, style]}
+          onPress={() => setTooltipVisible(true)}
+          activeOpacity={0.7}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <Text style={[styles.dot, { color: Colors.green }]}>✓</Text>
+          <Text style={[styles.label, { color: Colors.green }]}>{liveLabel}</Text>
+        </TouchableOpacity>
+        <Modal visible={tooltipVisible} transparent animationType="fade" onRequestClose={() => setTooltipVisible(false)}>
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setTooltipVisible(false)}>
+            <View style={styles.tooltip}>
+              <Text style={styles.tooltipTitle}>Données en direct</Text>
+              <Text style={styles.tooltipBody}>Ces informations proviennent d'une API en temps réel et ont été récupérées il y a {h} h.</Text>
+              <TouchableOpacity style={styles.tooltipClose} onPress={() => setTooltipVisible(false)}>
+                <Text style={styles.tooltipCloseText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </>
+    );
+  }
+
   // Staleness is based on the newest date (verifiedUntil if range, else verifiedAt)
-  const newestDate = verifiedUntil ?? verifiedAt;
+  const safeAt = verifiedAt ?? '2000-01-01';
+  const newestDate = verifiedUntil ?? safeAt;
   const days = daysSince(newestDate);
   const state = staleness(days);
   const months = Math.round(days / 30);
@@ -51,20 +87,20 @@ export function VerifiedTag({ verifiedAt, verifiedUntil, source, style }: Props)
     if (state === 'fresh') {
       dot = '✓';
       dotColor = Colors.green;
-      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)}${source ? ` · ${source}` : ''}`;
+      label = `Données vérifiées entre le ${formatDate(safeAt)} et le ${formatDate(verifiedUntil)}${source ? ` · ${source}` : ''}`;
     } else if (state === 'aging') {
       dot = '●';
       dotColor = Colors.accent;
-      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)} — mise à jour partielle${source ? ` · ${source}` : ''}`;
+      label = `Données vérifiées entre le ${formatDate(safeAt)} et le ${formatDate(verifiedUntil)} — mise à jour partielle${source ? ` · ${source}` : ''}`;
     } else {
       dot = '●';
       dotColor = Colors.mutedLight;
-      label = `Données vérifiées entre le ${formatDate(verifiedAt)} et le ${formatDate(verifiedUntil)} — à revérifier`;
+      label = `Données vérifiées entre le ${formatDate(safeAt)} et le ${formatDate(verifiedUntil)} — à revérifier`;
     }
   } else if (state === 'fresh') {
     dot = '✓';
     dotColor = Colors.green;
-    label = `Vérifié le ${formatDate(verifiedAt)}${source ? ` · ${source}` : ''}`;
+    label = `Vérifié le ${formatDate(safeAt)}${source ? ` · ${source}` : ''}`;
   } else if (state === 'aging') {
     dot = '●';
     dotColor = Colors.accent;
