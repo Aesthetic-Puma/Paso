@@ -238,7 +238,7 @@ export function MapScreen() {
 
   const filtered = sorted.filter((c) => {
     if (filterRegion && c.region !== filterRegion) return false;
-    if (filterBudget !== null && parseInt(c.budget.cost, 10) > filterBudget) return false;
+    if (filterBudget !== null && c.costMonthlyEUR > filterBudget) return false;
     if (filterDuree !== null && visaDureeToMonths(c.visa.duree) < filterDuree) return false;
     return true;
   });
@@ -362,7 +362,7 @@ export function MapScreen() {
                       {country.score}
                       <Text style={styles.listScoreSub}>/100</Text>
                     </Text>
-                    <Text style={styles.listBudget}>{country.budgetLabel}</Text>
+                    <Text style={styles.listBudget}>{`≈ ${country.costMonthlyEUR.toLocaleString('fr-FR')} €`}</Text>
                   </View>
                 </TouchableOpacity>
               );

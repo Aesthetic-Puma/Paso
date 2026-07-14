@@ -107,7 +107,7 @@ export function CountryScreen() {
   const statusLabel = score >= 70 ? 'Recommandé' : score >= 45 ? 'Sous conditions' : 'Difficile';
 
   const isNonIncome = profile.incomeAssured.startsWith('Non');
-  const countryCost = parseInt(country.budget.cost, 10);
+  const countryCost = country.costMonthlyEUR;
   const professionKey = getProfessionKey(profile.domain, profile.status);
 
   let budgetText: string;
@@ -173,6 +173,23 @@ export function CountryScreen() {
     const eurPart = currencyRate ? ` ${formatEUR(avgSalaryMin! / currencyRate)}/an` : '';
     return `Salaire moyen : ${amtStr}${eurPart}`;
   })();
+
+  // Salaire moyen card — hydrates from Adzuna monthly average when available
+  const liveSalaryMonthly = isLive && jobsResult!.data.avgSalaryMin
+    ? Math.round(jobsResult!.data.avgSalaryMin / 12)
+    : null;
+
+  const salaryCardAmount = liveSalaryMonthly
+    ? (() => {
+        const local = `≈ ${formatMoney(liveSalaryMonthly, currency)}`;
+        const eur = currencyRate && currency !== 'EUR'
+          ? ` · ${formatEUR(liveSalaryMonthly / currencyRate)}`
+          : '';
+        return `${local}${eur}`;
+      })()
+    : country.salaire.amount;
+
+  const salaryCardUnit = liveSalaryMonthly ? 'brut/mois' : country.salaire.unit;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -263,31 +280,28 @@ export function CountryScreen() {
         <View style={styles.section}>
           <View style={styles.twoCol}>
             <View style={[styles.infoCard, styles.halfCard]}>
-              <Text style={styles.infoLabel}>Budget</Text>
+              <Text style={styles.infoLabel}>Budget mensuel</Text>
               <Text style={styles.bigNumber}>
-                ≈ {country.budget.cost}
+                ≈ {country.costMonthlyEUR.toLocaleString('fr-FR')}
                 <Text style={styles.bigNumberUnit}> €/mois</Text>
               </Text>
               <Text style={[styles.budgetAdaptive, { color: budgetTextColor }]}>{budgetText}</Text>
-              <View style={[styles.sourceBadge, { marginTop: 10, alignSelf: 'flex-start' }]}>
-                <Text style={styles.sourceText}>via {country.budget.source}</Text>
-              </View>
               <VerifiedTag
                 verifiedAt={VERIFIED_DATES[countryId]?.budget ?? '2026-01-01'}
-                source={country.budget.source}
+                source="Estimation Paso"
               />
             </View>
             <View style={[styles.infoCard, styles.halfCard]}>
               <Text style={styles.infoLabel}>Salaire moyen</Text>
-              <Text style={styles.bigNumber}>{country.salaire.amount}</Text>
-              <Text style={styles.salaireUnit}>{country.salaire.unit}</Text>
-              <View style={[styles.sourceBadge, { marginTop: 10, alignSelf: 'flex-start' }]}>
-                <Text style={styles.sourceText}>via {country.salaire.source}</Text>
-              </View>
-              <VerifiedTag
-                verifiedAt={VERIFIED_DATES[countryId]?.salaire ?? '2026-01-01'}
-                source={country.salaire.source}
-              />
+              <Text style={styles.bigNumber}>{salaryCardAmount}</Text>
+              <Text style={styles.salaireUnit}>{salaryCardUnit}</Text>
+              {liveSalaryMonthly
+                ? <VerifiedTag liveAt={jobsResult!.fetchedAt} source="Adzuna" style={{ marginTop: 8 }} />
+                : <VerifiedTag
+                    verifiedAt={VERIFIED_DATES[countryId]?.salaire ?? '2026-01-01'}
+                    source="Estimation Paso"
+                  />
+              }
             </View>
           </View>
         </View>

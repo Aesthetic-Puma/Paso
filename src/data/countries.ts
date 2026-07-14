@@ -33,7 +33,7 @@ export interface Country {
   flag: string;
   region: string;
   tagline: string;
-  budgetLabel: string; // total monthly budget for list view (≈ 1 600 €)
+  costMonthlyEUR: number; // single source of truth for monthly cost, drives both displays
   score: number;
   // Sub-scores for map panel (Visa / Budget / Langue / Emploi)
   scoreVisa: number;
@@ -45,7 +45,7 @@ export interface Country {
   criteria: { label: string; score: number; text: string }[];
   emploiByProfession: EmploiByProfession;
   visa: { title: string; duree: string; conditions: string; source: string };
-  budget: { cost: string; unit: string; compareText: string; source: string };
+  budget: { unit: string; source: string };
   salaire: { amount: string; unit: string; role: string; source: string };
   pratique: { key: string; body: string }[];
   consulate: { name: string; address: string; phone: string };
@@ -315,8 +315,8 @@ export const COUNTRIES: Country[] = [
     id: 'au', code: 'AU', name: 'Australie', flag: '🇦🇺',
     region: 'Océanie',
     tagline: 'Visa Vacances-Travail accessible, marché ouvert',
-    budgetLabel: '≈ 1 600 €',
     score: 82, scoreVisa: 90, scoreBudget: 65, scoreLangue: 80, scoreEmploi: 88,
+    costMonthlyEUR: 1600,
     lat: -33.8, lon: 151.2,
     criteria: [
       { label: 'Visa', score: 90, text: "Working Holiday Visa accessible jusqu'à 35 ans" },
@@ -338,8 +338,8 @@ export const COUNTRIES: Country[] = [
       conditions: "Ouvert aux Français de 18 à 35 ans · demande en ligne · ≈ 510 AUD",
       source: 'Sherpa',
     },
-    budget: { cost: '900', unit: ' /mois', compareText: "Il te resterait ~300 €/mois d'épargne", source: 'Numbeo' },
-    salaire: { amount: '≈ 4 800 €', unit: 'brut/mois', role: 'ingénieur', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 4 800 €', unit: 'brut/mois', role: 'ingénieur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Colocation ~650 €/mois à Sydney. Plateformes : Flatmates, Domain, Gumtree.' },
       { key: 'Santé', body: 'Medicare public via accord AVS (bilatéral). Soins urgents gratuits. Assurance privée recommandée.' },
@@ -352,15 +352,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Mechanical Engineer', company: 'WSP', salary: '95 000 AUD', ago: '5 h' },
       { title: 'Project Engineer', company: 'Lendlease', salary: '105 000 AUD', ago: '1 j' },
     ],
-    sources: ['Sherpa', 'Numbeo', 'Glassdoor', 'Indeed', 'France Diplomatie'],
+    sources: ['Sherpa', 'Indeed', 'France Diplomatie', 'Estimation Paso'],
     phases: australiaPlan,
   },
   {
     id: 'ca', code: 'CA', name: 'Canada', flag: '🇨🇦',
     region: 'Amériques',
     tagline: 'Permis EIC, anglophone & francophone',
-    budgetLabel: '≈ 1 500 €',
     score: 80, scoreVisa: 85, scoreBudget: 70, scoreLangue: 85, scoreEmploi: 78,
+    costMonthlyEUR: 1500,
     lat: 43.7, lon: -79.4,
     criteria: [
       { label: 'Visa', score: 85, text: 'EIC (Expérience Internationale Canada) pour les 18–35 ans' },
@@ -382,8 +382,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Pool tirage au sort, ouvert généralement en janvier. Fonds suffisants requis (2 500 CAD minimum).',
       source: 'IRCC Canada',
     },
-    budget: { cost: '1200', unit: ' /mois', compareText: 'Budget serré — Montréal est plus abordable', source: 'Numbeo' },
-    salaire: { amount: '≈ 3 500 €', unit: 'brut/mois', role: 'développeur', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 3 500 €', unit: 'brut/mois', role: 'développeur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Studios ~900 CAD/mois à Montréal, ~1 600 CAD à Toronto. Kijiji et Marketplace pour les colocs.' },
       { key: 'Santé', body: 'RAMQ au Québec (après 3 mois), OHIP en Ontario. Assurance privée les premiers mois.' },
@@ -396,15 +396,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Ingénieur Backend (Python)', company: 'Coveo', salary: '95k CAD', ago: '1 sem' },
       { title: 'Data Engineer', company: 'Element AI', salary: '100k CAD', ago: '4 j' },
     ],
-    sources: ['IRCC', 'Numbeo', 'Glassdoor', 'WES Canada', 'France Diplomatie'],
+    sources: ['IRCC', 'WES Canada', 'France Diplomatie', 'Estimation Paso'],
     phases: canadaPlan,
   },
   {
     id: 'pt', code: 'PT', name: 'Portugal', flag: '🇵🇹',
     region: 'Europe',
     tagline: 'Libre circulation UE, coût de la vie bas',
-    budgetLabel: '≈ 1 100 €',
     score: 74, scoreVisa: 80, scoreBudget: 88, scoreLangue: 58, scoreEmploi: 66,
+    costMonthlyEUR: 1100,
     lat: 38.7, lon: -9.1,
     criteria: [
       { label: 'Visa', score: 80, text: 'Libre circulation UE, certificat de résidence immédiat' },
@@ -426,8 +426,8 @@ export const COUNTRIES: Country[] = [
       conditions: "Ressortissant UE : aucun visa. Enregistrement à l'AIMA sous 30 jours. Statut RNH disponible.",
       source: 'AIMA Portugal',
     },
-    budget: { cost: '1100', unit: ' /mois', compareText: 'Budget confortable, épargne possible', source: 'Numbeo' },
-    salaire: { amount: '≈ 2 400 €', unit: 'net/mois', role: 'développeur', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 2 400 €', unit: 'net/mois', role: 'développeur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Colocation ~600 €/mois à Lisbonne. Uniplaces et Idealista pour la recherche de logement.' },
       { key: 'Santé', body: 'SNS (Serviço Nacional de Saúde) public et gratuit après inscription.' },
@@ -440,15 +440,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Backend Developer (Node.js)', company: 'Feedzai', salary: '2 500–3 500 €', ago: '5 j' },
       { title: 'DevOps Engineer', company: 'Unbabel', salary: '3 000–4 000 €', ago: '1 sem' },
     ],
-    sources: ['AIMA', 'Numbeo', 'Glassdoor', 'Portal das Finanças', 'France Diplomatie'],
+    sources: ['AIMA', 'Portal das Finanças', 'France Diplomatie', 'Estimation Paso'],
     phases: portugalPlan,
   },
   {
     id: 'nz', code: 'NZ', name: 'Nouvelle-Zélande', flag: '🇳🇿',
     region: 'Océanie',
     tagline: 'Working Holiday simple, qualité de vie',
-    budgetLabel: '≈ 1 550 €',
     score: 77, scoreVisa: 86, scoreBudget: 66, scoreLangue: 82, scoreEmploi: 72,
+    costMonthlyEUR: 1550,
     lat: -36.8, lon: 174.7,
     criteria: [
       { label: 'Visa', score: 86, text: "Working Holiday Visa jusqu'à 35 ans, quota 1 500/an" },
@@ -470,8 +470,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Âge 18–35 ans. Quota de 1 500 personnes/an. Fonds requis : 4 200 NZD. Tirage au sort en ligne.',
       source: 'Immigration NZ',
     },
-    budget: { cost: '1400', unit: ' /mois', compareText: 'Budget serré à Auckland, équilibré à Wellington', source: 'Numbeo' },
-    salaire: { amount: '≈ 3 200 €', unit: 'brut/mois', role: 'développeur', source: 'Seek NZ' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 3 200 €', unit: 'brut/mois', role: 'développeur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Colocation ~700 NZD/mois à Wellington. TradeMe et Flatmates NZ pour la recherche.' },
       { key: 'Santé', body: 'ACC (accident compensation) public. Soins d\'urgence gratuits. Médecin généraliste ~60–80 NZD.' },
@@ -484,15 +484,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Backend Engineer (Python)', company: 'Vend', salary: '75k NZD', ago: '2 sem' },
       { title: 'Software Engineer', company: 'MYOB', salary: '80k NZD', ago: '5 j' },
     ],
-    sources: ['Immigration NZ', 'Numbeo', 'Seek NZ', 'IRD', 'France Diplomatie'],
+    sources: ['Immigration NZ', 'IRD', 'France Diplomatie', 'Estimation Paso'],
     phases: nzPlan,
   },
   {
     id: 'de', code: 'DE', name: 'Allemagne', flag: '🇩🇪',
     region: 'Europe',
     tagline: 'Libre circulation UE, mais langue à travailler',
-    budgetLabel: '≈ 1 400 €',
     score: 66, scoreVisa: 74, scoreBudget: 72, scoreLangue: 44, scoreEmploi: 80,
+    costMonthlyEUR: 1400,
     lat: 52.5, lon: 13.4,
     criteria: [
       { label: 'Visa', score: 74, text: 'Libre circulation UE, Anmeldung obligatoire sous 14 jours' },
@@ -514,8 +514,8 @@ export const COUNTRIES: Country[] = [
       conditions: "Ressortissant UE : Anmeldung (enregistrement domicile) sous 14 jours. Steuer-ID reçue automatiquement.",
       source: 'Make it in Germany',
     },
-    budget: { cost: '1400', unit: ' /mois', compareText: 'Budget similaire à Paris, logement moins cher à Berlin', source: 'Numbeo' },
-    salaire: { amount: '≈ 4 200 €', unit: 'brut/mois', role: 'développeur', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 4 200 €', unit: 'brut/mois', role: 'développeur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Colocation ~600 €/mois à Berlin. WG-Gesucht et Immobilienscout24 pour la recherche.' },
       { key: 'Santé', body: 'Krankenversicherung (KV) obligatoire : choisir entre public (TK, AOK, DAK) ou privé.' },
@@ -528,15 +528,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Senior Software Engineer', company: 'N26', salary: '80k–100k €', ago: '3 j' },
       { title: 'DevOps Engineer', company: 'HelloFresh', salary: '70k–90k €', ago: '2 j' },
     ],
-    sources: ['Make it in Germany', 'Numbeo', 'Glassdoor', 'Bundesagentur', 'France Diplomatie'],
+    sources: ['Make it in Germany', 'Bundesagentur', 'France Diplomatie', 'Estimation Paso'],
     phases: germanyPlan,
   },
   {
     id: 'jp', code: 'JP', name: 'Japon', flag: '🇯🇵',
     region: 'Asie-Pacifique',
     tagline: 'Visa qualifié possible, démarches longues',
-    budgetLabel: '≈ 1 700 €',
     score: 55, scoreVisa: 54, scoreBudget: 58, scoreLangue: 34, scoreEmploi: 70,
+    costMonthlyEUR: 1700,
     lat: 35.7, lon: 139.7,
     criteria: [
       { label: 'Visa', score: 54, text: 'PVT franco-japonais ou visa travail qualifié (COE requis)' },
@@ -558,8 +558,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Âge 18–30 ans. Quota annuel (1 500 personnes). 250 000 JPY de fonds. Tirage au sort en janvier.',
       source: 'Ambassade du Japon',
     },
-    budget: { cost: '1600', unit: ' /mois', compareText: 'Budget similaire à Paris, à surveiller', source: 'Numbeo' },
-    salaire: { amount: '≈ 2 800 €', unit: 'brut/mois', role: 'développeur', source: 'Glassdoor JP' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: '≈ 2 800 €', unit: 'brut/mois', role: 'développeur', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Studio ~700 €/mois à Tokyo (Saitama moins cher). GaijinPot Housing pour les étrangers.' },
       { key: 'Santé', body: 'Assurance nationale obligatoire (~13 000 ¥/mois). Remboursement 70 %. Pharmacies très accessibles.' },
@@ -572,15 +572,15 @@ export const COUNTRIES: Country[] = [
       { title: 'Backend Developer (Java)', company: 'Rakuten', salary: '6 M–9 M ¥', ago: '1 sem' },
       { title: 'Frontend Engineer', company: 'CyberAgent', salary: '7 M–10 M ¥', ago: '3 j' },
     ],
-    sources: ['Ambassade du Japon', 'Numbeo', 'Glassdoor', 'GaijinPot', 'France Diplomatie'],
+    sources: ['Ambassade du Japon', 'GaijinPot', 'France Diplomatie', 'Estimation Paso'],
     phases: japanPlan,
   },
   {
     id: 'kr', code: 'KR', name: 'Corée du Sud', flag: '🇰🇷',
     region: 'Asie-Pacifique',
     tagline: 'Working Holiday à quota limité',
-    budgetLabel: '≈ 1 500 €',
     score: 57, scoreVisa: 60, scoreBudget: 62, scoreLangue: 40, scoreEmploi: 66,
+    costMonthlyEUR: 1500,
     lat: 37.5, lon: 127.0,
     criteria: [
       { label: 'Visa', score: 60, text: "Working Holiday franco-coréen à quota limité (500/an)" },
@@ -602,8 +602,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Âge 18–30 ans. Quota ~500 personnes/an. Tirage au sort, ouverture en janvier.',
       source: 'Ambassade de Corée',
     },
-    budget: { cost: '1500', unit: ' /mois', compareText: 'Budget à estimer selon style de vie', source: 'Numbeo' },
-    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Studios ~500–800 €/mois à Séoul. Plateformes locales Zigbang et Dabang pour les colocations.' },
       { key: 'Santé', body: 'Système de santé public excellent. Assurance nationale (NHIS) obligatoire après inscription.' },
@@ -612,15 +612,15 @@ export const COUNTRIES: Country[] = [
     consulate: { name: "Ambassade de France en Corée du Sud", address: '30 Hap-dong, Seodaemun-gu, Seoul 03722', phone: '+82 2 3149 4300' },
     jobsCount: '— · Flux en cours',
     jobs: [],
-    sources: ['Ambassade de Corée', 'Numbeo', 'Glassdoor', 'France Diplomatie'],
+    sources: ['Ambassade de Corée', 'France Diplomatie', 'Estimation Paso'],
     phases: genericPlan('la Corée du Sud'),
   },
   {
     id: 'ae', code: 'AE', name: 'Émirats', flag: '🇦🇪',
     region: 'Asie-Pacifique',
     tagline: 'Visa via employeur uniquement',
-    budgetLabel: '≈ 2 200 €',
     score: 59, scoreVisa: 50, scoreBudget: 46, scoreLangue: 70, scoreEmploi: 74,
+    costMonthlyEUR: 2200,
     lat: 25.2, lon: 55.3,
     criteria: [
       { label: 'Visa', score: 50, text: 'Visa sponsorisé par l\'employeur uniquement' },
@@ -642,8 +642,8 @@ export const COUNTRIES: Country[] = [
       conditions: "Sponsorisé par l'employeur uniquement. Pas de visa indépendant. Vérifications médicales requises.",
       source: 'Sherpa',
     },
-    budget: { cost: '2200', unit: ' /mois', compareText: 'Budget élevé — offres attractives en contrepartie', source: 'Numbeo' },
-    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Appartements ~1 500–2 500 €/mois à Dubaï. Bayswater, Dubizzle pour la recherche.' },
       { key: 'Santé', body: 'Assurance santé obligatoire fournie par l\'employeur. Soins privés de haute qualité.' },
@@ -652,15 +652,15 @@ export const COUNTRIES: Country[] = [
     consulate: { name: "Consulat Général de France à Dubaï", address: 'Floor 6, Boulevard Plaza Tower 2, Downtown Dubai', phone: '+971 4 408 4900' },
     jobsCount: '— · Flux en cours',
     jobs: [],
-    sources: ['Sherpa', 'Numbeo', 'Glassdoor', 'France Diplomatie'],
+    sources: ['Sherpa', 'France Diplomatie', 'Estimation Paso'],
     phases: genericPlan('les Émirats'),
   },
   {
     id: 'sg', code: 'SG', name: 'Singapour', flag: '🇸🇬',
     region: 'Asie-Pacifique',
     tagline: 'Employment Pass exigeant sur le salaire',
-    budgetLabel: '≈ 2 000 €',
     score: 60, scoreVisa: 44, scoreBudget: 40, scoreLangue: 86, scoreEmploi: 80,
+    costMonthlyEUR: 2000,
     lat: 1.3, lon: 103.8,
     criteria: [
       { label: 'Visa', score: 44, text: 'Employment Pass : salaire minimum 5 000 SGD/mois' },
@@ -682,8 +682,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Salaire minimum 5 000 SGD/mois. Offre d\'emploi obligatoire. Process : 3–8 semaines via MOM.',
       source: 'MOM Singapore',
     },
-    budget: { cost: '2000', unit: ' /mois', compareText: 'Budget serré — salaires élevés compensent', source: 'Numbeo' },
-    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Appartements ~2 000–3 500 SGD/mois. PropertyGuru et 99.co pour la recherche.' },
       { key: 'Santé', body: 'Système de santé public et privé de haute qualité. Assurance fournie par l\'employeur.' },
@@ -692,15 +692,15 @@ export const COUNTRIES: Country[] = [
     consulate: { name: "Ambassade de France à Singapour", address: '101-103 Cluny Park Road, Singapore 259595', phone: '+65 6880 7800' },
     jobsCount: '— · Flux en cours',
     jobs: [],
-    sources: ['MOM Singapore', 'Numbeo', 'Glassdoor', 'France Diplomatie'],
+    sources: ['MOM Singapore', 'France Diplomatie', 'Estimation Paso'],
     phases: genericPlan('Singapour'),
   },
   {
     id: 'br', code: 'BR', name: 'Brésil', flag: '🇧🇷',
     region: 'Amériques',
     tagline: 'Visa via entreprise, bureaucratie',
-    budgetLabel: '≈ 1 200 €',
     score: 54, scoreVisa: 56, scoreBudget: 70, scoreLangue: 40, scoreEmploi: 54,
+    costMonthlyEUR: 1200,
     lat: -23.5, lon: -46.6,
     criteria: [
       { label: 'Visa', score: 56, text: 'Visa de travail via entreprise locale, démarches longues' },
@@ -722,8 +722,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Offre d\'emploi via entreprise brésilienne obligatoire. Dossier à l\'Ambassade du Brésil.',
       source: 'Ambassade du Brésil',
     },
-    budget: { cost: '1200', unit: ' /mois', compareText: 'Budget abordable selon le quartier', source: 'Numbeo' },
-    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Colocation ~500–800 €/mois à São Paulo ou Rio. OLX et Viva Real pour la recherche.' },
       { key: 'Santé', body: 'Système public SUS, qualité variable. Assurance privée fortement recommandée.' },
@@ -732,15 +732,15 @@ export const COUNTRIES: Country[] = [
     consulate: { name: "Consulat Général de France à São Paulo", address: 'Av. Paulista 1842, 14e étage, São Paulo, SP 01310-945', phone: '+55 11 3371 5400' },
     jobsCount: '— · Flux en cours',
     jobs: [],
-    sources: ['Ambassade du Brésil', 'Numbeo', 'Glassdoor', 'France Diplomatie'],
+    sources: ['Ambassade du Brésil', 'France Diplomatie', 'Estimation Paso'],
     phases: genericPlan('le Brésil'),
   },
   {
     id: 'us', code: 'US', name: 'États-Unis', flag: '🇺🇸',
     region: 'Amériques',
     tagline: 'Visa de travail très contraint (loterie H-1B)',
-    budgetLabel: '≈ 2 500 €',
     score: 41, scoreVisa: 18, scoreBudget: 40, scoreLangue: 86, scoreEmploi: 60,
+    costMonthlyEUR: 2500,
     lat: 40.7, lon: -74.0,
     criteria: [
       { label: 'Visa', score: 18, text: 'H-1B par loterie (22 % de chances), très incertain' },
@@ -762,8 +762,8 @@ export const COUNTRIES: Country[] = [
       conditions: 'Loterie annuelle, 22 % de chances. Offre d\'emploi obligatoire. Alternative : L-1 via mutation ou O-1 talents.',
       source: 'USCIS',
     },
-    budget: { cost: '2500', unit: ' /mois', compareText: 'Budget très élevé à New York et San Francisco', source: 'Numbeo' },
-    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Glassdoor' },
+    budget: { unit: ' /mois', source: 'Estimation Paso' },
+    salaire: { amount: 'À estimer', unit: 'brut/mois', role: 'ton domaine', source: 'Estimation Paso' },
     pratique: [
       { key: 'Logement', body: 'Appartements ~2 500–4 000 $/mois à NYC. Zillow et Apartments.com pour la recherche.' },
       { key: 'Santé', body: 'Pas de système public. Assurance santé via employeur obligatoire, coûts très élevés.' },
@@ -772,7 +772,7 @@ export const COUNTRIES: Country[] = [
     consulate: { name: "Consulat Général de France à New York", address: '934 5th Ave, New York, NY 10021', phone: '+1 212 606 3600' },
     jobsCount: '— · Flux en cours',
     jobs: [],
-    sources: ['USCIS', 'Numbeo', 'Glassdoor', 'France Diplomatie'],
+    sources: ['USCIS', 'France Diplomatie', 'Estimation Paso'],
     phases: genericPlan('les États-Unis'),
   },
 ];
