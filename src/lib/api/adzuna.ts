@@ -27,10 +27,10 @@ export const COUNTRY_CURRENCY: Record<string, string> = {
 
 const PROFESSION_TERMS: Record<string, string> = {
   tech: 'software engineer',
-  hotellerie: 'hospitality',
-  business: 'business analyst',
-  entrepreneur: 'product manager',
-  etudiant: 'graduate',
+  hotellerie: 'hospitality hotel restaurant',
+  business: 'manager consultant',
+  entrepreneur: 'business development',
+  etudiant: 'part time junior',
 };
 
 export interface LiveJob {

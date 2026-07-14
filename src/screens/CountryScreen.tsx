@@ -22,7 +22,8 @@ import { useStore } from '../store/useStore';
 import { VerifiedTag } from '../components/VerifiedTag';
 import { VERIFIED_DATES } from '../data/verifiedDates';
 import { useFeedbackStore } from '../store/useFeedbackStore';
-import { getExchangeRates, enrichWithEUR, Rates } from '../lib/api/exchangeRates';
+import { getExchangeRates, enrichWithEUR, convertToEUR, Rates } from '../lib/api/exchangeRates';
+import { formatMoney, formatEUR, formatSalaryWithEUR } from '../lib/format';
 import {
   fetchJobs,
   refreshJobs as apiRefreshJobs,
@@ -142,12 +143,15 @@ export function CountryScreen() {
   // Jobs: live data from Adzuna when available, else mock from countries.ts
   const isLive = canFetchJobs && jobsResult !== null;
   const currency = COUNTRY_CURRENCY[countryId] ?? '';
+  const currencyRate = rates && currency && currency !== 'EUR'
+    ? ((rates as Record<string, number>)[currency] ?? null)
+    : null;
   const displayJobs = isLive && jobsResult!.data.jobs.length > 0
     ? jobsResult!.data.jobs.map((j) => ({
         title: j.title,
         company: j.company,
         salary: j.salaryMin
-          ? `${j.salaryMin.toLocaleString('fr-FR')} ${j.currency}${j.salaryMax && j.salaryMax !== j.salaryMin ? ` – ${j.salaryMax.toLocaleString('fr-FR')}` : ''}/an`
+          ? formatSalaryWithEUR(j.salaryMin, j.currency, currencyRate)
           : '',
         ago: (() => {
           const d = Math.floor((Date.now() - new Date(j.created).getTime()) / 86_400_000);
@@ -163,13 +167,11 @@ export function CountryScreen() {
   const avgSalaryDisplay = (() => {
     if (!isLive || !jobsResult!.data.avgSalaryMin) return null;
     const { avgSalaryMin, avgSalaryMax } = jobsResult!.data;
-    const base = `Salaire moyen : ${avgSalaryMin!.toLocaleString('fr-FR')}${avgSalaryMax && avgSalaryMax !== avgSalaryMin ? ` – ${avgSalaryMax.toLocaleString('fr-FR')}` : ''} ${currency}/an`;
-    if (rates && currency && (rates as Record<string, number>)[currency]) {
-      const rate = (rates as Record<string, number>)[currency];
-      const eurMin = Math.round(avgSalaryMin! / rate);
-      return `${base} (≈ ${eurMin.toLocaleString('fr-FR')} €)`;
-    }
-    return base;
+    const amtStr = avgSalaryMax && avgSalaryMax !== avgSalaryMin
+      ? `${formatMoney(avgSalaryMin!, currency)} – ${formatMoney(avgSalaryMax, currency)}/an`
+      : `${formatMoney(avgSalaryMin!, currency)}/an`;
+    const eurPart = currencyRate ? ` ${formatEUR(avgSalaryMin! / currencyRate)}/an` : '';
+    return `Salaire moyen : ${amtStr}${eurPart}`;
   })();
 
   return (
@@ -341,7 +343,7 @@ export function CountryScreen() {
           </View>
           <View style={[styles.liveCard, styles.jobsCard]}>
             <View style={styles.jobsHeader}>
-              <Text style={styles.jobsTitle}>Offres d'emploi · {country.salaire.role}</Text>
+              <Text style={styles.jobsTitle}>Offres d'emploi · {profile.domain}</Text>
               <Text style={styles.jobsCount}>{liveJobCount}</Text>
             </View>
             {avgSalaryDisplay && (

@@ -34,8 +34,13 @@ function staleness(days: number): Staleness {
   return 'stale';
 }
 
-function hoursAgo(ts: number): number {
-  return Math.round((Date.now() - ts) / 3_600_000);
+function liveAgoLabel(ts: number): string {
+  const ms = Date.now() - ts;
+  const h = Math.round(ms / 3_600_000);
+  if (h < 1) return "à l'instant";
+  if (h < 24) return `il y a ${h} h`;
+  const d = Math.round(ms / 86_400_000);
+  return `il y a ${d} j`;
 }
 
 export function VerifiedTag({ verifiedAt, verifiedUntil, liveAt, source, style }: Props) {
@@ -43,8 +48,8 @@ export function VerifiedTag({ verifiedAt, verifiedUntil, liveAt, source, style }
 
   // Live data mode — always green
   if (liveAt !== undefined) {
-    const h = hoursAgo(liveAt);
-    const liveLabel = `Données en direct · ${source ?? ''} · il y a ${h} h`;
+    const agoText = liveAgoLabel(liveAt);
+    const liveLabel = `Données en direct · ${source ?? ''} · ${agoText}`;
     return (
       <>
         <TouchableOpacity
@@ -60,7 +65,7 @@ export function VerifiedTag({ verifiedAt, verifiedUntil, liveAt, source, style }
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setTooltipVisible(false)}>
             <View style={styles.tooltip}>
               <Text style={styles.tooltipTitle}>Données en direct</Text>
-              <Text style={styles.tooltipBody}>Ces informations proviennent d'une API en temps réel et ont été récupérées il y a {h} h.</Text>
+              <Text style={styles.tooltipBody}>Ces informations proviennent d'une API en temps réel et ont été récupérées {agoText}.</Text>
               <TouchableOpacity style={styles.tooltipClose} onPress={() => setTooltipVisible(false)}>
                 <Text style={styles.tooltipCloseText}>Fermer</Text>
               </TouchableOpacity>
